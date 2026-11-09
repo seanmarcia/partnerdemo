@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>GitHub for Nonprofits | Partner API tester</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    [hidden] { display: none !important; }
+    body { font-family: system-ui, sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+  <header class="border-b border-slate-200 bg-white">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white" aria-hidden="true">GH</span>
+        <div>
+          <p class="text-sm font-semibold">GitHub for Nonprofits</p>
+          <p class="text-xs text-slate-500">Partner API tester</p>
+        </div>
+      </div>
+      <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">Read-only demo</span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-14">
+    <div class="mb-8 max-w-2xl">
+      <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-emerald-700">For our partners</p>
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Test nonprofit validation</h1>
+      <p class="mt-4 leading-relaxed text-slate-600">Enter your partner API key, choose what to look up, and send a request to the GitHub for Nonprofits API.</p>
+    </div>
+
+    <aside class="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950" aria-label="Hosting requirements">
+      <strong>Hosting requirement:</strong> when this file is opened locally or hosted on another site, the API must allow that site's origin and the <code>Authorization</code> header through CORS. The production API currently does not advertise that permission. Without it, the browser cannot complete the test; this is not a <code>false</code> result.
+    </aside>
+
+    <div class="grid items-start gap-6 lg:grid-cols-2">
+      <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="request-heading">
+        <h2 id="request-heading" class="text-lg font-semibold">Make a request</h2>
+        <p class="mt-1 text-sm text-slate-500">No GitHub sign-in required.</p>
+
+        <form id="api-form" class="mt-6 space-y-5" autocomplete="off">
+          <div>
+            <label for="api-key" class="mb-2 block text-sm font-medium">Partner API key</label>
+            <input id="api-key" type="password" required autocomplete="off" autocapitalize="none" spellcheck="false"
+              placeholder="Paste your API key"
+              aria-describedby="key-help"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100">
+            <p id="key-help" class="mt-2 text-xs leading-relaxed text-slate-500">Paste only the key, not the Authorization header. It is sent only to <strong>nonprofits.github.com</strong>, never saved in browser storage or included in the URL. Use this page only on a host you trust.</p>
+          </div>
+
+          <div>
+            <label for="query-type" class="mb-2 block text-sm font-medium">Query by</label>
+            <select id="query-type" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100">
+              <option value="user">GitHub username</option>
+              <option value="organization">GitHub organization</option>
+            </select>
+          </div>
+
+          <div>
+            <label id="identifier-label" for="identifier" class="mb-2 block text-sm font-medium">GitHub username</label>
+            <input id="identifier" type="text" required autocomplete="off" autocapitalize="none" spellcheck="false"
+              placeholder="e.g. octocat"
+              aria-describedby="identifier-help"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100">
+            <p id="identifier-help" class="mt-2 text-xs leading-relaxed text-slate-500">Use the GitHub login, not a display name, email address, or profile URL.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <button id="submit-button" type="submit" class="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60">Test API</button>
+            <button id="clear-button" type="button" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50">Clear key &amp; results</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="response-heading">
+        <h2 id="response-heading" class="text-lg font-semibold">Request &amp; response</h2>
+        <p class="mt-1 text-sm text-slate-500">The request preview never contains your key.</p>
+
+        <div class="mt-6 rounded-xl bg-slate-900 p-4 text-slate-100">
+          <span class="text-xs font-semibold text-emerald-400">GET</span>
+          <code id="request-preview" class="mt-2 block break-all text-xs leading-relaxed"></code>
+          <div class="mt-4 border-t border-slate-700 pt-3 text-xs leading-relaxed text-slate-400">
+            <p>Accept: application/json</p>
+            <p>Authorization: Token token="[hidden]"</p>
+          </div>
+        </div>
+
+        <div id="result" class="mt-6" role="status" aria-live="polite" aria-atomic="true">
+          <span id="result-badge" class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Ready to test</span>
+          <h3 id="result-title" class="mt-3 text-lg font-semibold">Your result will appear here</h3>
+          <p id="result-message" class="mt-2 text-sm leading-relaxed text-slate-600">Submit a request to see the HTTP status and validation result.</p>
+          <p id="http-status" hidden class="mt-3 text-xs font-medium text-slate-500"></p>
+        </div>
+
+        <div id="raw-response" hidden class="mt-5">
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Response body</h3>
+          <pre id="response-body" class="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed"></pre>
+        </div>
+      </section>
+    </div>
+
+    <section class="mt-8 grid gap-5 text-sm text-slate-600 sm:grid-cols-2" aria-label="How validation works">
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 class="font-semibold text-slate-900">Username lookup</h2>
+        <p class="mt-2 leading-relaxed"><code>/api/users?username=...</code> returns <code>true</code> when the user is locally linked to at least one validated GitHub organization.</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 class="font-semibold text-slate-900">Organization lookup</h2>
+        <p class="mt-2 leading-relaxed"><code>/api/organizations?name=...</code> returns <code>true</code> when that GitHub organization is recorded as validated.</p>
+      </div>
+    </section>
+
+    <footer class="mt-8 text-xs leading-relaxed text-slate-500">
+      <p><code>false</code> means no matching validated record was found. It can also mean the username or organization is unknown; it is not an authentication failure.</p>
+      <p class="mt-2">This standalone demo loads Tailwind CSS from a CDN. Your host must permit that script, the embedded JavaScript, and connections to <code>https://nonprofits.github.com</code>.</p>
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const API_ORIGIN = "https://nonprofits.github.com";
+    const endpoints = {
+      user: { path: "/api/users", parameter: "username", label: "GitHub username", placeholder: "e.g. octocat" },
+      organization: { path: "/api/organizations", parameter: "name", label: "GitHub organization", placeholder: "e.g. github" }
+    };
+    const form = document.getElementById("api-form");
+    const keyInput = document.getElementById("api-key");
+    const typeInput = document.getElementById("query-type");
+    const identifierInput = document.getElementById("identifier");
+    const submitButton = document.getElementById("submit-button");
+    const clearButton = document.getElementById("clear-button");
+    const preview = document.getElementById("request-preview");
+    const badge = document.getElementById("result-badge");
+    const title = document.getElementById("result-title");
+    const message = document.getElementById("result-message");
+    const httpStatus = document.getElementById("http-status");
+    const rawResponse = document.getElementById("raw-response");
+    const responseBody = document.getElementById("response-body");
+    let busy = false;
+    let activeController = null;
+
+    function requestUrl() {
+      const endpoint = endpoints[typeInput.value];
+      const url = new URL(endpoint.path, API_ORIGIN);
+      if (identifierInput.value.trim()) {
+        url.searchParams.set(endpoint.parameter, identifierInput.value.trim());
+      }
+      return url;
+    }
+
+    function updatePreview() {
+      const endpoint = endpoints[typeInput.value];
+      preview.textContent = identifierInput.value.trim()
+        ? requestUrl().toString()
+        : `${API_ORIGIN}${endpoint.path}?${endpoint.parameter}=...`;
+    }
+
+    function setResult(kind, heading, description, status = null, body = null) {
+      const styles = {
+        ready: ["Ready to test", "bg-slate-100 text-slate-600"],
+        loading: ["Sending request", "bg-blue-100 text-blue-800"],
+        validated: ["true", "bg-emerald-100 text-emerald-800"],
+        notValidated: ["false", "bg-amber-100 text-amber-800"],
+        error: ["Request failed", "bg-red-100 text-red-800"]
+      };
+      badge.textContent = styles[kind][0];
+      badge.className = `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${styles[kind][1]}`;
+      title.textContent = heading;
+      message.textContent = description;
+      httpStatus.hidden = status === null;
+      httpStatus.textContent = status === null ? "" : `HTTP ${status}`;
+      rawResponse.hidden = body === null;
+      responseBody.textContent = body === null ? "" : body;
+    }
+
+    function resetResult() {
+      setResult("ready", "Your result will appear here", "Submit a request to see the HTTP status and validation result.");
+    }
+
+    function setBusy(value) {
+      busy = value;
+      for (const control of [keyInput, typeInput, identifierInput, submitButton, clearButton]) {
+        control.disabled = value;
+      }
+      form.setAttribute("aria-busy", String(value));
+      submitButton.textContent = value ? "Testing..." : "Test API";
+    }
+
+    typeInput.addEventListener("change", () => {
+      const endpoint = endpoints[typeInput.value];
+      document.getElementById("identifier-label").textContent = endpoint.label;
+      identifierInput.placeholder = endpoint.placeholder;
+      identifierInput.value = "";
+      identifierInput.setCustomValidity("");
+      updatePreview();
+      resetResult();
+      identifierInput.focus();
+    });
+
+    identifierInput.addEventListener("input", () => {
+      identifierInput.setCustomValidity("");
+      updatePreview();
+      resetResult();
+    });
+
+    keyInput.addEventListener("input", () => {
+      keyInput.setCustomValidity("");
+      resetResult();
+    });
+
+    clearButton.addEventListener("click", () => {
+      keyInput.value = "";
+      keyInput.setCustomValidity("");
+      resetResult();
+      keyInput.focus();
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (busy) return;
+
+      const key = keyInput.value.trim();
+      const identifier = identifierInput.value.trim();
+      keyInput.setCustomValidity(!key
+        ? "Enter your partner API key."
+        : /[^\x20-\x7E]/.test(key) ? "Paste the API key on one line, without control characters." : "");
+      identifierInput.setCustomValidity(identifier ? "" : "Enter a GitHub username or organization.");
+      if (!form.reportValidity()) return;
+
+      const url = requestUrl();
+      const controller = new AbortController();
+      activeController = controller;
+      let timedOut = false;
+      const timeout = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, 15000);
+
+      setBusy(true);
+      setResult("loading", "Checking validation...", `Sending a request for ${identifier}.`);
+
+      try {
+        const escapedKey = key.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Token token="${escapedKey}"`
+          },
+          credentials: "omit",
+          cache: "no-store",
+          redirect: "error",
+          referrerPolicy: "no-referrer",
+          signal: controller.signal
+        });
+        const body = await response.text();
+
+        if (!response.ok) {
+          const description = response.status === 401
+            ? "The API rejected this key. Check that you are using a valid partner API key, not a GitHub token."
+            : `The API returned an error (HTTP ${response.status}). No validation result is available.`;
+          setResult("error", "API request rejected", description, response.status, body);
+          return;
+        }
+
+        let result;
+        try {
+          result = JSON.parse(body);
+        } catch (error) {
+          if (!(error instanceof SyntaxError)) throw error;
+          setResult("error", "Unexpected response", "The API did not return valid JSON. No validation result is available.", response.status, body);
+          return;
+        }
+
+        if (typeof result !== "boolean") {
+          setResult("error", "Unexpected response", "Expected a JSON boolean (true or false), but received a different response.", response.status, body);
+          return;
+        }
+
+        const description = result
+          ? typeInput.value === "user"
+            ? `${identifier} is linked to at least one validated organization.`
+            : `${identifier} is a validated GitHub organization.`
+          : `No matching validated record was found for ${identifier}. Check the spelling; unknown names also return false.`;
+        setResult(result ? "validated" : "notValidated", result ? "Validated" : "No validated match", description, response.status, body);
+      } catch (error) {
+        if (timedOut) {
+          setResult("error", "Request timed out", "No response was received within 15 seconds. No validation result is available. Try again later.");
+        } else if (error instanceof TypeError) {
+          setResult("error", "Browser or network blocked the request",
+            "No readable API response was received. Check your connection and the browser console. If this page is hosted elsewhere, the API must allow your origin and the Authorization header through CORS. Do not treat this as a false result.");
+        } else {
+          setResult("error", "Unable to complete the request", "An unexpected browser error occurred. No validation result is available.");
+        }
+      } finally {
+        clearTimeout(timeout);
+        activeController = null;
+        setBusy(false);
+      }
+    });
+
+    window.addEventListener("pagehide", () => {
+      keyInput.value = "";
+      activeController?.abort();
+    });
+
+    updatePreview();
+  </script>
+</body>
+</html>
+
